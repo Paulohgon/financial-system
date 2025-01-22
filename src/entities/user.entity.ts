@@ -6,27 +6,27 @@ import {
     UpdateDateColumn,
   } from 'typeorm';
   
-  @Entity('users') // Nome da tabela no banco de dados
+  @Entity('users')  
   export class User {
-    @PrimaryGeneratedColumn() // Chave primária auto-incrementada
+    @PrimaryGeneratedColumn() 
     id: number;
   
-    @Column({ unique: true }) // Coluna única para e-mail
+    @Column({ unique: true }) 
     email: string;
   
-    @Column() // Coluna para o nome do usuário
+    @Column() 
     name: string;
   
-    @Column() // Coluna para senha (será armazenada como hash)
+    @Column() 
     password: string;
   
-    @Column({ default: 'user' }) // Papel do usuário (ex.: user, admin)
+    @Column({ default: 'user' }) 
     role: string;
   
-    @CreateDateColumn() // Data de criação (preenchida automaticamente pelo TypeORM)
+    @CreateDateColumn() 
     createdAt: Date;
   
-    @UpdateDateColumn() // Data de última atualização (preenchida automaticamente pelo TypeORM)
+    @UpdateDateColumn() 
     updatedAt: Date;
   }
   

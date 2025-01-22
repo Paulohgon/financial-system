@@ -25,6 +25,6 @@ import { OwnershipGuard } from './auth/owner.guard';
     WalletModule,
     TransactionsModule,
   ],
-  providers: [OwnershipGuard], // OwnershipGuard precisa estar no contexto do módulo
+  providers: [OwnershipGuard], 
 })
 export class AppModule {}

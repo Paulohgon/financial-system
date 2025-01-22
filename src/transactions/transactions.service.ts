@@ -46,7 +46,6 @@ import {
         let sourceWallet: Wallet | null = null;
         let targetWallet: Wallet | null = null;
   
-        // Valida e busca as carteiras
         if (sourceWalletId) {
           sourceWallet = await queryRunner.manager.findOne(Wallet, { where: { id: sourceWalletId } });
           if (!sourceWallet) {
@@ -56,10 +55,6 @@ import {
             throw new ForbiddenException('Access denied to source wallet');
           }
         }
-        console.log(targetWalletId);
-        console.log(user);
-        console.log(user.id);
-        console.log(amount);
         if (targetWalletId) {
           targetWallet = await queryRunner.manager.findOne(Wallet, { where: { id: targetWalletId } });
           if (!targetWallet) {
@@ -70,7 +65,6 @@ import {
           }
         }
   
-        // Atualiza os saldos com base no tipo
         if (type === 'income') {
           if (!targetWallet) {
             throw new BadRequestException('Target wallet is required for income');
@@ -78,10 +72,8 @@ import {
           const currentBalance = parseFloat(targetWallet.balance.toString()); // Converte para número
           targetWallet.balance = currentBalance + amount;
           await queryRunner.manager.save(Wallet, targetWallet);
-          // targetWallet.balance = amount + targetWallet.balance; 
           console.log("targetWallet.balance", targetWallet.balance);
           console.log("targetWallet.balance2", targetWallet.balance);
-          // await queryRunner.manager.save(Wallet, targetWallet);
           console.log(targetWallet);
           console.log(targetWallet.balance);
         } else if (type === 'expense') {
@@ -106,7 +98,6 @@ import {
           await queryRunner.manager.save(Wallet, targetWallet);
         }
   
-        // Cria e salva a transação
         const transaction = this.transactionRepository.create({
           type,
           amount,
@@ -193,7 +184,6 @@ import {
         await queryRunner.startTransaction();
     
         try {
-          // Valida se a carteira pertence ao usuário
           let wallet: Wallet | null = null;
           if (walletId) {
             wallet = await queryRunner.manager.findOne(Wallet, {
@@ -210,7 +200,6 @@ import {
             }
           }
     
-          // Filtra transações no período e (opcionalmente) por carteira
           const where = {
             createdAt: Between(startDate, endDate),
             ...(walletId ? { sourceWallet: { id: walletId } } : {}),
@@ -221,7 +210,6 @@ import {
             relations: ['sourceWallet', 'targetWallet'],
           });
     
-          // Calcula receitas, despesas e o saldo total
           const income = transactions
             .filter((t) => t.type === 'income')
             .reduce((sum, t) => sum + Number(t.amount), 0);

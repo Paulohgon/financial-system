@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service'; // Reutilizando o serviço de usuários
+import { UsersService } from '../users/users.service'; 
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class AuthService {
 
   // Valida o usuário baseado no email e senha
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email); // Buscar pelo email
+    const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user; // Remove a senha antes de retornar
       return result;
@@ -20,7 +20,6 @@ export class AuthService {
     return null;
   }
 
-  // Gera o token JWT
   async login(user: any) {
     const payload = { sub: user.id, email: user.email, role: user.role };
     return {

@@ -16,7 +16,7 @@ import {
   import { GenerateReportDto } from './dto/generate-report.dto';
   import { Role } from '../auth/roles.decorator';
 
-  @UseGuards(JwtAuthGuard) // Verifica autenticação em todas as rotas
+  @UseGuards(JwtAuthGuard)
   @Controller('transactions')
   export class TransactionsController {
     constructor(private readonly transactionsService: TransactionsService) {}
@@ -27,7 +27,7 @@ import {
       return this.transactionsService.create(createTransactionDto, req.user);
     }
     @Get(':id')
-    @UseGuards(OwnershipGuard) // Apenas o proprietário pode acessar
+    @UseGuards(OwnershipGuard) 
     findOne(@Param('id') id: string, @Request() req) {
     return this.transactionsService.findOne(+id);
   }

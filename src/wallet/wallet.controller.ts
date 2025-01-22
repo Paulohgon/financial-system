@@ -25,7 +25,7 @@ import {
       return this.walletService.create(createWalletDto, req.user);
     }
     
-    @UseGuards(OwnershipGuard) // Apenas o proprietário pode acessar
+    @UseGuards(OwnershipGuard)
     @Get()
     findAll(@Request() req) {
       return this.walletService.findAll(req.user);

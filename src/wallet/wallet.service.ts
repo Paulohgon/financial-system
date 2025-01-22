@@ -16,7 +16,7 @@ export class WalletService {
   constructor(
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
-    private readonly dataSource: DataSource, // DataSource para usar transações
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createWalletDto: CreateWalletDto, user: User): Promise<Wallet> {
@@ -33,16 +33,13 @@ export class WalletService {
 
       const savedWallet = await queryRunner.manager.save(Wallet, wallet);
 
-      // Commita a transação se tudo estiver ok
       await queryRunner.commitTransaction();
 
       return savedWallet;
     } catch (error) {
-      // Reverte a transação em caso de erro
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      // Fecha o queryRunner
       await queryRunner.release();
     }
   }
@@ -71,7 +68,6 @@ export class WalletService {
         throw new ForbiddenException('Access denied');
       }
 
-      // Atualiza o saldo
       wallet.balance += amount;
 
       if (wallet.balance < 0) {
@@ -80,16 +76,13 @@ export class WalletService {
 
       const updatedWallet = await queryRunner.manager.save(Wallet, wallet);
 
-      // Commita a transação
       await queryRunner.commitTransaction();
 
       return updatedWallet;
     } catch (error) {
-      // Reverte a transação em caso de erro
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      // Fecha o queryRunner
       await queryRunner.release();
     }
   }
@@ -114,17 +107,13 @@ export class WalletService {
         throw new ForbiddenException('Access denied');
       }
 
-      // Remove a carteira
       await queryRunner.manager.remove(Wallet, wallet);
 
-      // Commita a transação
       await queryRunner.commitTransaction();
     } catch (error) {
-      // Reverte a transação em caso de erro
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      // Fecha o queryRunner
       await queryRunner.release();
     }
   }
@@ -137,25 +126,24 @@ export class WalletService {
     try {
       const wallet = await queryRunner.manager.findOne(Wallet, {
         where: { id },
-        relations: ['user'], // Inclui o relacionamento com o usuário
+        relations: ['user'],
       });
   
       if (!wallet) {
         throw new NotFoundException(`Wallet with ID ${id} not found`);
       }
   
-      // Verifica se o usuário tem permissão para acessar a carteira
       if (wallet.user.id !== user.id) {
         throw new ForbiddenException('Access denied');
       }
   
-      await queryRunner.commitTransaction(); // Confirma a transação
+      await queryRunner.commitTransaction();
       return wallet;
     } catch (error) {
-      await queryRunner.rollbackTransaction(); // Reverte a transação em caso de erro
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      await queryRunner.release(); // Libera o queryRunner
+      await queryRunner.release();
     }
   }
   
@@ -169,22 +157,20 @@ export class WalletService {
       let wallets: Wallet[];
   
       if (user.role === 'admin') {
-        // Admin pode acessar todas as carteiras
         wallets = await queryRunner.manager.find(Wallet);
       } else {
-        // Usuário comum só pode acessar suas próprias carteiras
         wallets = await queryRunner.manager.find(Wallet, {
           where: { user: { id: user.id } },
         });
       }
   
-      await queryRunner.commitTransaction(); // Confirma a transação
+      await queryRunner.commitTransaction();
       return wallets;
     } catch (error) {
-      await queryRunner.rollbackTransaction(); // Reverte a transação em caso de erro
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      await queryRunner.release(); // Libera o queryRunner
+      await queryRunner.release();
     }
   }
   
@@ -208,23 +194,21 @@ export class WalletService {
         throw new NotFoundException(`Wallet with ID ${id} not found`);
       }
   
-      // Verifica se o usuário tem permissão para atualizar a carteira
       if (user.role !== 'admin' && wallet.user.id !== user.id) {
         throw new ForbiddenException('Access denied');
       }
   
-      // Atualiza os campos enviados
       Object.assign(wallet, updateWalletDto);
   
       const updatedWallet = await queryRunner.manager.save(Wallet, wallet);
   
-      await queryRunner.commitTransaction(); // Confirma a transação
+      await queryRunner.commitTransaction();
       return updatedWallet;
     } catch (error) {
-      await queryRunner.rollbackTransaction(); // Reverte a transação em caso de erro
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      await queryRunner.release(); // Libera o queryRunner
+      await queryRunner.release();
     }
   }
   

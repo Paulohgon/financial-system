@@ -19,7 +19,7 @@ import {
     @Column('decimal', { precision: 12, scale: 2, default: 0 })
     balance: number;
   
-    @ManyToOne(() => User, (user) => user.id, { eager: true }) // Relacionamento com o usuário
+    @ManyToOne(() => User, (user) => user.id, { eager: true }) 
     user: User;
   
     @CreateDateColumn()

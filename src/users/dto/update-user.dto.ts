@@ -9,6 +9,6 @@ export class UpdateUserDto {
   @MinLength(6)
   password?: string;
 
-  role?: string; // Apenas para administradores
+  role?: string; 
 }
 

@@ -20,16 +20,16 @@ import {
     @Column('decimal', { precision: 12, scale: 2 })
     amount: number;
   
-    @Column({ nullable: true }) // Categoria é opcional
+    @Column({ nullable: true }) 
     category: string;
   
-    @ManyToOne(() => Wallet, { nullable: true }) // Wallet de origem (opcional para transferências)
+    @ManyToOne(() => Wallet, { nullable: true }) 
     sourceWallet: Wallet;
   
-    @ManyToOne(() => Wallet, { nullable: true }) // Wallet de destino (opcional para despesas e receitas)
+    @ManyToOne(() => Wallet, { nullable: true }) 
     targetWallet: Wallet;
   
-    @ManyToOne(() => User, { eager: true }) // Usuário que criou a transação
+    @ManyToOne(() => User, { eager: true }) 
     createdBy: User;
   
     @CreateDateColumn()

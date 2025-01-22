@@ -4,8 +4,8 @@ import { WalletService } from './wallet.service';
 import { Wallet } from '../entities/wallet.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Wallet])], // Registra o WalletRepository
+  imports: [TypeOrmModule.forFeature([Wallet])], 
   providers: [WalletService],
-  exports: [WalletService, TypeOrmModule], // Exporta o WalletService e o WalletRepository
+  exports: [WalletService, TypeOrmModule],
 })
 export class WalletModule {}

@@ -5,15 +5,15 @@ export class GenerateReportDto {
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()
-  startDate: Date; // Data inicial do relatório
+  startDate: Date; 
 
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()
-  endDate: Date; // Data final do relatório
+  endDate: Date; 
 
   @IsOptional()
-  walletId?: number; // Opcional: filtrar por carteira específica
+  walletId?: number; 
   @IsOptional()
-  category?: string; // Opcional: filtrar por categoria específica
+  category?: string; 
 }

@@ -11,5 +11,5 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  role?: string; // Opcional, pois o padrão será "user"
+  role?: string; 
 }
