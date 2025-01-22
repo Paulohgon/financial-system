@@ -1,0 +1,48 @@
+version: '3.8'
+
+
+services:
+  db: # Serviço do PostgreSQL
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user               # Nome do usuário do banco
+      POSTGRES_PASSWORD: password       # Senha do banco
+      POSTGRES_DB: financial_system     # Nome do banco
+    ports:
+      - "5432:5432"                     # Porta para acessar o PostgreSQL no host
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Volume para persistência dos dados
+
+  pgadmin: # Serviço do pgAdmin
+    image: dpage/pgadmin4:latest        # Use a versão mais recente do pgAdmin
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com  # E-mail de login do pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: admin         # Senha de login do pgAdmin
+    ports:
+      - "5050:80"                             # Porta para acessar o pgAdmin no navegador
+    depends_on:
+      - db                                    # Garante que o banco esteja disponível antes do pgAdmin
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_app
+    ports:
+      - "3000:3000"                     # Porta para acessar o aplicativo
+    volumes:
+      - .:/app                          # Sincroniza o diretório local com o contêiner
+      - /app/node_modules               # Evita problemas com dependências locais e do contêiner
+    environment:
+      POSTGRES_HOST: db                 # Host do banco (nome do serviço no Docker Compose)
+      POSTGRES_PORT: 5432               # Porta do banco
+      POSTGRES_USER: user               # Nome do usuário do banco
+      POSTGRES_PASSWORD: password       # Senha do banco
+      POSTGRES_DB: financial_system     # Nome do banco
+    depends_on:
+      - db                              # Garante que o banco de dados seja iniciado antes do app
+
+volumes:
+  pgdata:                               # Volume para persistir dados do PostgreSQL
