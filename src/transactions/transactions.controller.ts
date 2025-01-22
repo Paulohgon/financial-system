@@ -14,10 +14,8 @@ import {
   import { OwnershipGuard } from '../auth/owner.guard';
   import { CreateTransactionDto } from './dto/create-transaction.dto';
   import { GenerateReportDto } from './dto/generate-report.dto';
-  import { Role } from '../auth/roles.decorator';
-  import { RolesGuard } from 'src/auth/roles.guard';
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @Controller('transactions')
   export class TransactionsController {
     constructor(private readonly transactionsService: TransactionsService) {}
@@ -32,7 +30,6 @@ import {
     return this.transactionsService.findOne(transactionId);
   }
     @Get()
-    @Role('admin')
     findAll(
       @Request() req,
       @Query('startDate') startDate?: string,

@@ -52,9 +52,7 @@ docker-compose up --build
 
 ### **1. Configurando o Postman**
 1. Abra o Postman e crie uma nova coleção.
-2. Adicione um ambiente com a seguinte variável:
-   - `{{baseUrl}}`: `http://localhost:3000`
-3. Para cada rota, configure os headers necessários, como `Authorization` para endpoints protegidos.
+2. Para cada rota, configure os headers necessários, como `Authorization` para endpoints protegidos.
 
 ---
 
@@ -62,7 +60,7 @@ docker-compose up --build
 
 #### **Autenticação**
 - **Login**
-  - **Endpoint**: `POST {{baseUrl}}/auth/login`
+  - **Endpoint**: `POST http://localhost:3000/auth/login`
   - **Body**:
     ```json
     {
@@ -79,7 +77,7 @@ docker-compose up --build
 
 #### **Usuários**
 - **Criar Usuário**
-  - **Endpoint**: `POST {{baseUrl}}/users`
+  - **Endpoint**: `POST http://localhost:3000/users`
   - **Body**:
     ```json
     {
@@ -91,7 +89,7 @@ docker-compose up --build
     ```
 
 - **Buscar Usuários (Admin)**
-  - **Endpoint**: `GET {{baseUrl}}/users`
+  - **Endpoint**: `GET http://localhost:3000/users`
   - **Headers**:
     ```json
     {
@@ -99,46 +97,171 @@ docker-compose up --build
     }
     ```
 
-#### **Carteiras (Wallets)**
-- **Criar Carteira**
-  - **Endpoint**: `POST {{baseUrl}}/wallets`
-  - **Headers**:
-    ```json
-    {
-      "Authorization": "Bearer JWT_TOKEN"
-    }
-    ```
-  - **Body**:
-    ```json
-    {
-      "name": "Wallet Name",
-      "balance": 1000
-    }
-    ```
+### **Endpoints de Carteiras (Wallets)**
 
-- **Atualizar Saldo**
-  - **Endpoint**: `PATCH {{baseUrl}}/wallets/:walletId/balance`
-  - **Headers**:
-    ```json
+#### **1. Criar Carteira**
+- **Descrição**: Cria uma nova carteira para o usuário autenticado.
+- **Endpoint**: `POST http://localhost:3000/wallets`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Body**:
+  ```json
+  {
+    "name": "Wallet Name",
+    "balance": 1000
+  }
+  ```
+- **Resposta**:
+  ```json
+  {
+    "id": 1,
+    "name": "Wallet Name",
+    "balance": 1000,
+    "userId": 1,
+    "createdAt": "2025-01-22T10:00:00Z",
+    "updatedAt": "2025-01-22T10:00:00Z"
+  }
+  ```
+
+---
+
+#### **2. Buscar Todas as Carteiras**
+- **Descrição**: Retorna todas as carteiras pertencentes ao usuário autenticado.
+- **Endpoint**: `GET http://localhost:3000/wallets`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Resposta**:
+  ```json
+  [
     {
-      "Authorization": "Bearer JWT_TOKEN"
-    }
-    ```
-  - **Query Params**:
-    - `amount`: Valor para incrementar ou decrementar.
-  
-- **Excluir Carteira**
-  - **Endpoint**: `DELETE {{baseUrl}}/wallets/:walletId`
-  - **Headers**:
-    ```json
+      "id": 1,
+      "name": "Main Wallet",
+      "balance": 1000,
+      "createdAt": "2025-01-22T10:00:00Z",
+      "updatedAt": "2025-01-22T10:00:00Z"
+    },
     {
-      "Authorization": "Bearer JWT_TOKEN"
+      "id": 2,
+      "name": "Savings Wallet",
+      "balance": 5000,
+      "createdAt": "2025-01-22T12:00:00Z",
+      "updatedAt": "2025-01-22T12:00:00Z"
     }
-    ```
+  ]
+  ```
+
+---
+
+#### **3. Buscar Carteira por ID**
+- **Descrição**: Retorna os detalhes de uma carteira específica do usuário autenticado.
+- **Endpoint**: `GET http://localhost:3000/wallets/:walletId`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `walletId`: ID da carteira.
+- **Resposta**:
+  ```json
+  {
+    "id": 1,
+    "name": "Main Wallet",
+    "balance": 1000,
+    "createdAt": "2025-01-22T10:00:00Z",
+    "updatedAt": "2025-01-22T10:00:00Z"
+  }
+  ```
+
+---
+
+#### **4. Atualizar Carteira**
+- **Descrição**: Atualiza as informações de uma carteira específica (nome ou saldo).
+- **Endpoint**: `PATCH http://localhost:3000/wallets/:walletId`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `walletId`: ID da carteira.
+- **Body**:
+  ```json
+  {
+    "name": "Updated Wallet Name",
+    "balance": 1200
+  }
+  ```
+- **Resposta**:
+  ```json
+  {
+    "id": 1,
+    "name": "Updated Wallet Name",
+    "balance": 1200,
+    "createdAt": "2025-01-22T10:00:00Z",
+    "updatedAt": "2025-01-22T12:00:00Z"
+  }
+  ```
+
+---
+
+#### **5. Atualizar Saldo da Carteira**
+- **Descrição**: Incrementa ou decrementa o saldo de uma carteira específica.
+- **Endpoint**: `PATCH http://localhost:3000/wallets/:walletId/balance`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `walletId`: ID da carteira.
+  - Query Params:
+    - `amount`: Valor a ser incrementado ou decrementado (positivo para adicionar, negativo para subtrair).
+- **Exemplo de URL**:
+  ```
+  PATCH local/wallets/1/balance?amount=200
+  ```
+- **Resposta**:
+  ```json
+  {
+    "id": 1,
+    "name": "Main Wallet",
+    "balance": 1200,
+    "createdAt": "2025-01-22T10:00:00Z",
+    "updatedAt": "2025-01-22T12:00:00Z"
+  }
+  ```
+
+---
+
+#### **6. Excluir Carteira**
+- **Descrição**: Remove uma carteira específica do usuário autenticado.
+- **Endpoint**: `DELETE local/wallets/:walletId`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `walletId`: ID da carteira.
+- **Resposta**:
+ -  Código de status `200 OK` se a carteira for deletada com sucesso.
 
 #### **Transações**
 - **Criar Transação**
-  - **Endpoint**: `POST {{baseUrl}}/transactions`
+  - **Endpoint**: `POST local/transactions`
   - **Headers**:
     ```json
     {
@@ -155,8 +278,82 @@ docker-compose up --build
     }
     ```
 
+#### **Deletar Transação**
+- **Endpoint**: `DELETE local/transactions/:transactionId`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `transactionId`: ID da transação que será cancelada.
+- **Resposta**:
+  - Código de status `200 OK` se a transação for cancelada com sucesso.
+  - Exemplo de resposta:
+    ```json
+    {
+      "message": "Transaction canceled successfully"
+    }
+    ```
+
+#### **Buscar Todas as Transações**
+- **Endpoint**: `GET local/transactions`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Query Params (Opcional)**:
+  - `startDate`: Data inicial no formato `YYYY-MM-DD`.
+  - `endDate`: Data final no formato `YYYY-MM-DD`.
+  - `walletId`: ID da carteira para filtrar as transações.
+- **Resposta**:
+  ```json
+  [
+    {
+      "id": 1,
+      "type": "income",
+      "amount": 500,
+      "category": "Salary",
+      "walletId": 1,
+      "createdAt": "2025-01-21T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "type": "expense",
+      "amount": 200,
+      "category": "Groceries",
+      "walletId": 1,
+      "createdAt": "2025-01-20T15:00:00Z"
+    }
+  ]
+  ```
+
+#### **Buscar Transação por ID**
+- **Endpoint**: `GET local/transactions/find/:transactionId`
+- **Headers**:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- **Parâmetros**:
+  - `transactionId`: ID da transação que será buscada.
+- **Resposta**:
+  ```json
+  {
+    "id": 1,
+    "type": "income",
+    "amount": 500,
+    "category": "Salary",
+    "walletId": 1,
+    "createdAt": "2025-01-21T10:00:00Z"
+  }
+  ```
 - **Relatório de Transações**
-  - **Endpoint**: `GET {{baseUrl}}/transactions/report`
+  - **Endpoint**: `GET local/transactions/report`
   - **Headers**:
     ```json
     {
