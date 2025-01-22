@@ -15,6 +15,7 @@ import {
   import { CreateWalletDto } from './dto/create-wallet.dto';
   import { UpdateWalletDto } from './dto/update-wallet.dto';
   import { OwnershipGuard } from '../auth/owner.guard';
+  
   @UseGuards(JwtAuthGuard)
   @Controller('wallets')
   export class WalletController {
@@ -28,35 +29,37 @@ import {
     @UseGuards(OwnershipGuard)
     @Get()
     findAll(@Request() req) {
+
       return this.walletService.findAll(req.user);
     }
     @UseGuards(OwnershipGuard)
-    @Get(':id')
-    findOne(@Param('id') id: number, @Request() req) {
-      return this.walletService.findOne(id, req.user);
+    @Get(':walletId')
+    findOne(@Param('walletId') walletId: number, @Request() req) {
+      return this.walletService.findOne(+walletId);
     }
     @UseGuards(OwnershipGuard)
-    @Patch(':id')
+    @Patch(':walletId')
     update(
-      @Param('id') id: number,
+      @Param('walletId') walletId: number,
       @Body() updateWalletDto: UpdateWalletDto,
       @Request() req,
     ) {
-      return this.walletService.update(id, updateWalletDto, req.user);
+      return this.walletService.update(walletId, updateWalletDto, req.user);
     }
+
     @UseGuards(OwnershipGuard)
-    @Patch(':id/balance')
+    @Patch(':walletId/balance')
     updateBalance(
-      @Param('id') id: number,
+      @Param('walletId') walletId: number,
       @Query('amount') amount: number,
       @Request() req,
     ) {
-      return this.walletService.updateBalance(id, +amount, req.user);
+      return this.walletService.updateBalance(walletId, +amount, req.user);
     }
     @UseGuards(OwnershipGuard)
-    @Delete(':id')
-    remove(@Param('id') id: number, @Request() req) {
-      return this.walletService.remove(id, req.user);
+    @Delete(':walletId')
+    remove(@Param('walletId') walletId: number, @Request() req) {
+      return this.walletService.remove(walletId, req.user);
     }
   }
   

@@ -10,6 +10,7 @@ import { Wallet } from '../entities/wallet.entity';
 import { User } from '../entities/user.entity';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { Transaction } from 'src/entities/transaction.entity';
 
 @Injectable()
 export class WalletService {
@@ -67,8 +68,8 @@ export class WalletService {
       if (user.role !== 'admin' && wallet.user.id !== user.id) {
         throw new ForbiddenException('Access denied');
       }
-
-      wallet.balance += amount;
+      const currentBalance = parseFloat(wallet.balance.toString()); // Converte para número
+      wallet.balance = currentBalance + amount;
 
       if (wallet.balance < 0) {
         throw new ConflictException('Insufficient funds');
@@ -89,63 +90,54 @@ export class WalletService {
 
   async remove(id: number, user: User): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
-
+  
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
+  
     try {
       const wallet = await queryRunner.manager.findOne(Wallet, {
         where: { id },
         relations: ['user'],
       });
-
+  
       if (!wallet) {
         throw new NotFoundException(`Wallet with ID ${id} not found`);
       }
-
+  
+      // Verifica se o usuário tem permissão para excluir a carteira
       if (user.role !== 'admin' && wallet.user.id !== user.id) {
         throw new ForbiddenException('Access denied');
       }
-
+  
+      // Exclui todas as transações associadas à carteira
+      await queryRunner.manager.delete(Transaction, { sourceWallet: { id } });
+      await queryRunner.manager.delete(Transaction, { targetWallet: { id } });
+  
+      // Exclui a carteira
       await queryRunner.manager.remove(Wallet, wallet);
+  
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+  
+  async findOne(id: number): Promise<Wallet> {
+    const wallet = await this.walletRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+  
+    if (!wallet) {
+      throw new NotFoundException(`Wallet with ID ${id} not found`);
+    }
+    
+    return wallet;
+  }
 
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-  async findOne(id: number, user: User): Promise<Wallet> {
-    const queryRunner = this.dataSource.createQueryRunner();
-  
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-  
-    try {
-      const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { id },
-        relations: ['user'],
-      });
-  
-      if (!wallet) {
-        throw new NotFoundException(`Wallet with ID ${id} not found`);
-      }
-  
-      if (wallet.user.id !== user.id) {
-        throw new ForbiddenException('Access denied');
-      }
-  
-      await queryRunner.commitTransaction();
-      return wallet;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
   
   async findAll(user: User): Promise<Wallet[]> {
     const queryRunner = this.dataSource.createQueryRunner();

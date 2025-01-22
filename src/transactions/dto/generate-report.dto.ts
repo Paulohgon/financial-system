@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsDate, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsDate, IsOptional, IsInt } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class GenerateReportDto {
   @IsNotEmpty()
@@ -13,7 +13,9 @@ export class GenerateReportDto {
   endDate: Date; 
 
   @IsOptional()
-  walletId?: number; 
+  @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
+  @IsInt()
+  walletId?: number;
   @IsOptional()
   category?: string; 
 }

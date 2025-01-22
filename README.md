@@ -1,99 +1,193 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Financial Management API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## **Descrição**
+Esta é uma API desenvolvida com [NestJS](https://nestjs.com/) para gerenciamento financeiro, incluindo usuários, carteiras (wallets) e transações. A API utiliza autenticação JWT e possui controles de acesso baseados em papéis e ownership.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## **Pré-requisitos**
+Certifique-se de ter as seguintes ferramentas instaladas:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [Postman](https://www.postman.com/)
 
-## Project setup
+---
 
+## **Instalação e Configuração**
+
+### **1. Clonando o repositório**
 ```bash
-$ npm install
+git clone <url-do-repositorio>
+cd <nome-do-repositorio>
 ```
 
-## Compile and run the project
+### **2. Configuração do ambiente**
+Certifique-se de que o arquivo `docker-compose.yml` e o `Dockerfile` estão configurados corretamente para sua máquina.
 
+- **Banco de dados:**
+  - Usuário: `user`
+  - Senha: `password`
+  - Database: `financial_system`
+- **PgAdmin**: 
+  - Email: `admin@admin.com`
+  - Senha: `admin`
+
+### **3. Iniciando o ambiente**
+Execute o seguinte comando para iniciar os containers do Docker:
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker-compose up --build
 ```
 
-## Run tests
+### **4. Acessando os serviços**
+- **API NestJS**: Disponível em `http://localhost:3000`
+- **PgAdmin**: Disponível em `http://localhost:5050`
 
-```bash
-# unit tests
-$ npm run test
+> No PgAdmin, configure a conexão com o banco usando os dados fornecidos no `docker-compose.yml`.
 
-# e2e tests
-$ npm run test:e2e
+---
 
-# test coverage
-$ npm run test:cov
-```
+## **Como Usar a API**
 
-## Deployment
+### **1. Configurando o Postman**
+1. Abra o Postman e crie uma nova coleção.
+2. Adicione um ambiente com a seguinte variável:
+   - `{{baseUrl}}`: `http://localhost:3000`
+3. Para cada rota, configure os headers necessários, como `Authorization` para endpoints protegidos.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### **2. Endpoints Principais**
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+#### **Autenticação**
+- **Login**
+  - **Endpoint**: `POST {{baseUrl}}/auth/login`
+  - **Body**:
+    ```json
+    {
+      "email": "email@example.com",
+      "password": "password123"
+    }
+    ```
+  - **Resposta**:
+    ```json
+    {
+      "access_token": "JWT_TOKEN"
+    }
+    ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### **Usuários**
+- **Criar Usuário**
+  - **Endpoint**: `POST {{baseUrl}}/users`
+  - **Body**:
+    ```json
+    {
+      "email": "user@example.com",
+      "name": "User Name",
+      "password": "password123",
+      "role": "user"
+    }
+    ```
 
-## Resources
+- **Buscar Usuários (Admin)**
+  - **Endpoint**: `GET {{baseUrl}}/users`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
 
-Check out a few resources that may come in handy when working with NestJS:
+#### **Carteiras (Wallets)**
+- **Criar Carteira**
+  - **Endpoint**: `POST {{baseUrl}}/wallets`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
+  - **Body**:
+    ```json
+    {
+      "name": "Wallet Name",
+      "balance": 1000
+    }
+    ```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- **Atualizar Saldo**
+  - **Endpoint**: `PATCH {{baseUrl}}/wallets/:walletId/balance`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
+  - **Query Params**:
+    - `amount`: Valor para incrementar ou decrementar.
+  
+- **Excluir Carteira**
+  - **Endpoint**: `DELETE {{baseUrl}}/wallets/:walletId`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
 
-## Support
+#### **Transações**
+- **Criar Transação**
+  - **Endpoint**: `POST {{baseUrl}}/transactions`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
+  - **Body**:
+    ```json
+    {
+      "type": "income",
+      "amount": 500,
+      "category": "Salary",
+      "sourceWalletId": 1
+    }
+    ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **Relatório de Transações**
+  - **Endpoint**: `GET {{baseUrl}}/transactions/report`
+  - **Headers**:
+    ```json
+    {
+      "Authorization": "Bearer JWT_TOKEN"
+    }
+    ```
+  - **Query Params**:
+    - `startDate`: Data inicial no formato `YYYY-MM-DD`.
+    - `endDate`: Data final no formato `YYYY-MM-DD`.
+    - `walletId`: ID da carteira (opcional).
+    - `category`: Categoria da transação (opcional).
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## **Dicas**
+- Use o token JWT obtido no login para acessar os endpoints protegidos. Adicione-o no header como:
+  ```json
+  {
+    "Authorization": "Bearer JWT_TOKEN"
+  }
+  ```
+- Teste as funcionalidades no Postman para garantir que tudo está configurado corretamente.
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## **Tecnologias Utilizadas**
+- **Backend**: NestJS
+- **Banco de Dados**: PostgreSQL
+- **Autenticação**: JWT
+- **Gerenciamento de Containers**: Docker e Docker Compose
+
+---
+
+## **Licença**
+Este projeto está licenciado sob a licença MIT. Sinta-se à vontade para usar e modificar conforme necessário.

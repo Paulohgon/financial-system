@@ -72,10 +72,6 @@ import {
           const currentBalance = parseFloat(targetWallet.balance.toString()); // Converte para número
           targetWallet.balance = currentBalance + amount;
           await queryRunner.manager.save(Wallet, targetWallet);
-          console.log("targetWallet.balance", targetWallet.balance);
-          console.log("targetWallet.balance2", targetWallet.balance);
-          console.log(targetWallet);
-          console.log(targetWallet.balance);
         } else if (type === 'expense') {
           if (!sourceWallet) {
             throw new BadRequestException('Source wallet is required for expense');
@@ -118,19 +114,49 @@ import {
       }
     }
   
-    async findAll(user: User): Promise<Transaction[]> {
+    async findAll(user: User, startDate?: Date, endDate?: Date, walletId?: number): Promise<Transaction[]> {
+      const whereConditions: any[] = [];
+    
       if (user.role === 'admin') {
-        return this.transactionRepository.find({ relations: ['sourceWallet', 'targetWallet'] });
+        // Admin tem acesso a todas as transações
+        if (walletId) {
+          whereConditions.push(
+            { sourceWallet: { id: walletId }, createdAt: Between(startDate, endDate) },
+            { targetWallet: { id: walletId }, createdAt: Between(startDate, endDate) }
+          );
+        } else if (startDate && endDate) {
+          whereConditions.push({ createdAt: Between(startDate, endDate) });
+        }
+    
+        return this.transactionRepository.find({
+          where: whereConditions.length > 0 ? whereConditions : undefined,
+          relations: ['sourceWallet', 'targetWallet'],
+        });
       }
-      return this.transactionRepository.find({
-        where: [
+    
+      // Usuário comum
+      if (walletId) {
+        whereConditions.push(
+          { sourceWallet: { id: walletId, user: { id: user.id } }, createdAt: Between(startDate, endDate) },
+          { targetWallet: { id: walletId, user: { id: user.id } }, createdAt: Between(startDate, endDate) }
+        );
+      } else if (startDate && endDate) {
+        whereConditions.push(
+          { sourceWallet: { user: { id: user.id } }, createdAt: Between(startDate, endDate) },
+          { targetWallet: { user: { id: user.id } }, createdAt: Between(startDate, endDate) }
+        );
+      } else {
+        whereConditions.push(
           { sourceWallet: { user: { id: user.id } } },
-          { targetWallet: { user: { id: user.id } } },
-        ],
+          { targetWallet: { user: { id: user.id } } }
+        );
+      }
+    
+      return this.transactionRepository.find({
+        where: whereConditions,
         relations: ['sourceWallet', 'targetWallet'],
       });
     }
-  
     async cancelTransaction(id: number, user: User): Promise<void> {
       const transaction = await this.transactionRepository.findOne({
         where: { id },
@@ -150,7 +176,6 @@ import {
       await queryRunner.startTransaction();
   
       try {
-        // Reverte os saldos com base no tipo de transação
         if (transaction.type === 'income' && transaction.targetWallet) {
           transaction.targetWallet.balance -= transaction.amount;
           await queryRunner.manager.save(Wallet, transaction.targetWallet);
@@ -174,61 +199,78 @@ import {
       }
     }
     async generateReport(
-        generateReportDto: GenerateReportDto,
-        user: User,
-      ): Promise<{ income: number; expense: number; total: number }> {
-        const { startDate, endDate, walletId, category } = generateReportDto;
+      generateReportDto: GenerateReportDto,
+      user: User,
+    ): Promise<{ income: number; expense: number; transferIn: number; transferOut: number; total: number }> {
+      const { startDate, endDate, walletId, category } = generateReportDto;
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
     
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-    
-        try {
-          let wallet: Wallet | null = null;
-          if (walletId) {
-            wallet = await queryRunner.manager.findOne(Wallet, {
-              where: { id: walletId },
-              relations: ['user'],
-            });
-    
-            if (!wallet) {
-              throw new NotFoundException(`Wallet with ID ${walletId} not found`);
-            }
-    
-            if (user.role !== 'admin' && wallet.user.id !== user.id) {
-              throw new NotFoundException(`You don't have access to this wallet`);
-            }
-          }
-    
-          const where = {
-            createdAt: Between(startDate, endDate),
-            ...(walletId ? { sourceWallet: { id: walletId } } : {}),
-          };
-    
-          const transactions = await queryRunner.manager.find(Transaction, {
-            where,
-            relations: ['sourceWallet', 'targetWallet'],
+      try {
+        // Verifica se a carteira é válida e acessível, se fornecida
+        if (walletId) {
+          const wallet = await queryRunner.manager.findOne(Wallet, {
+            where: { id: walletId },
+            relations: ['user'],
           });
     
-          const income = transactions
-            .filter((t) => t.type === 'income')
-            .reduce((sum, t) => sum + Number(t.amount), 0);
+          if (!wallet) {
+            throw new NotFoundException(`Wallet with ID ${walletId} not found`);
+          }
     
-          const expense = transactions
-            .filter((t) => t.type === 'expense')
-            .reduce((sum, t) => sum + Number(t.amount), 0);
-    
-          const total = income - expense;
-    
-          await queryRunner.commitTransaction();
-    
-          return { income, expense, total };
-        } catch (error) {
-          await queryRunner.rollbackTransaction();
-          throw error;
-        } finally {
-          await queryRunner.release();
+          if (user.role !== 'admin' && wallet.user.id !== user.id) {
+            throw new ForbiddenException(`You don't have access to this wallet`);
+          }
         }
+    
+        const rawResults = await queryRunner.manager
+          .createQueryBuilder(Transaction, 'transaction')
+          .select('transaction.type', 'type')
+          .addSelect('SUM(transaction.amount)', 'total')
+          .leftJoin('transaction.sourceWallet', 'sourceWallet')
+          .leftJoin('transaction.targetWallet', 'targetWallet')
+          .where('transaction.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+          .andWhere(walletId ? '(sourceWallet.id = :walletId OR targetWallet.id = :walletId)' : '1=1', { walletId })
+          .andWhere(category ? 'transaction.category = :category' : '1=1', { category })
+          .groupBy('transaction.type')
+          .getRawMany();
+
+        let income = 0;
+        let expense = 0;
+        let transferIn = 0;
+        let transferOut = 0;
+    
+        rawResults.forEach((row) => {
+          const type = row.type;
+          const total = parseFloat(row.total);
+    
+          if (type === 'income') {
+            income += total;
+          } else if (type === 'expense') {
+            expense += total;
+          } else if (type === 'transfer') {
+            if (row['targetWalletId'] === walletId) {
+              transferIn += total;
+            } else if (row['sourceWalletId'] === walletId) {
+              transferOut += total;
+            }
+          }
+        });
+    
+        const total = income - expense + transferIn - transferOut;
+    
+        await queryRunner.commitTransaction();
+    
+        return { income, expense, transferIn, transferOut, total };
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw error;
+      } finally {
+        await queryRunner.release();
       }
+    }
+    
+    
   }
   

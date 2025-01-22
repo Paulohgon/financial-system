@@ -6,43 +6,42 @@ services:
     image: postgres:13
     container_name: postgres_db
     environment:
-      POSTGRES_USER: user               # Nome do usuário do banco
-      POSTGRES_PASSWORD: password       # Senha do banco
-      POSTGRES_DB: financial_system     # Nome do banco
+      POSTGRES_USER: user             
+      POSTGRES_PASSWORD: password       
+      POSTGRES_DB: financial_system    
     ports:
-      - "5432:5432"                     # Porta para acessar o PostgreSQL no host
+      - "5432:5432"                    
     volumes:
-      - pgdata:/var/lib/postgresql/data # Volume para persistência dos dados
+      - pgdata:/var/lib/postgresql/data 
 
-  pgadmin: # Serviço do pgAdmin
-    image: dpage/pgadmin4:latest        # Use a versão mais recente do pgAdmin
+  pgadmin: 
+    image: dpage/pgadmin4:latest       
     container_name: pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com  # E-mail de login do pgAdmin
-      PGADMIN_DEFAULT_PASSWORD: admin         # Senha de login do pgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com  #
+      PGADMIN_DEFAULT_PASSWORD: admin        
     ports:
-      - "5050:80"                             # Porta para acessar o pgAdmin no navegador
+      - "5050:80"                             
     depends_on:
-      - db                                    # Garante que o banco esteja disponível antes do pgAdmin
-
+      - db                                    
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: nestjs_app
     ports:
-      - "3000:3000"                     # Porta para acessar o aplicativo
+      - "3000:3000"                   
     volumes:
-      - .:/app                          # Sincroniza o diretório local com o contêiner
-      - /app/node_modules               # Evita problemas com dependências locais e do contêiner
+      - .:/app                         
+      - /app/node_modules              
     environment:
-      POSTGRES_HOST: db                 # Host do banco (nome do serviço no Docker Compose)
-      POSTGRES_PORT: 5432               # Porta do banco
-      POSTGRES_USER: user               # Nome do usuário do banco
-      POSTGRES_PASSWORD: password       # Senha do banco
-      POSTGRES_DB: financial_system     # Nome do banco
+      POSTGRES_HOST: db                 
+      POSTGRES_PORT: 5432              
+      POSTGRES_USER: user              
+      POSTGRES_PASSWORD: password      
+      POSTGRES_DB: financial_system    
     depends_on:
-      - db                              # Garante que o banco de dados seja iniciado antes do app
+      - db                              
 
 volumes:
-  pgdata:                               # Volume para persistir dados do PostgreSQL
+  pgdata:                               
