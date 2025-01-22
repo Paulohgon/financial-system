@@ -23,7 +23,7 @@ cd <nome-do-repositorio>
 ```
 
 ### **2. Configuração do ambiente**
-Certifique-se de que o arquivo `docker-compose.yml` e o `Dockerfile` estão configurados corretamente para sua máquina.
+Certifique-se de que o arquivo `docker-compose.yml` e o `Dockerfile` estão configurados corretamente para sua máquina, importante ressaltar que as variaveis de ambiente do banco configuradas no docker são para ambiente de testes, em produção devem ser centralizadas no .ENV.
 
 - **Banco de dados:**
   - Usuário: `user`
@@ -32,7 +32,8 @@ Certifique-se de que o arquivo `docker-compose.yml` e o `Dockerfile` estão conf
 - **PgAdmin**: 
   - Email: `admin@admin.com`
   - Senha: `admin`
-
+- **Token JWT**:
+  - Configure um JWT_SECRET em seu .ENV (exemplo:E9miJfoSREu2c7ghUr7hSKlhXM8lpEmOJFlbMQaImvTp+lWtPIsDVL1JtYr1+UVD2l3FiXv4jCN1hl==)
 ### **3. Iniciando o ambiente**
 Execute o seguinte comando para iniciar os containers do Docker:
 ```bash
